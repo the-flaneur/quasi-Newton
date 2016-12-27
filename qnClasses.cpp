@@ -11,27 +11,32 @@
 #include <cmath>
 using namespace std;
 
-void Variable::update(const double& deltaX) {
+void Variable::update(const VectorXd& deltaX) {
     value = value + deltaX;
 }
-void ObjectiveFunc::evaluate(double x) {
+void ObjectiveFunc::evaluate(VectorXd x) {
     // Compute function value
-    fval = x*x*x*x;
+    fval = x(0)*x(0)*x(0)*x(0);
 }
-void ObjectiveGrad::evaluate(double x) {
+void ObjectiveGrad::evaluate(VectorXd x) {
     // Compute function and gradient values
     ObjectiveFunc::evaluate(x);
-    grad = 4.0*x*x*x;
+    grad = 4.0*x(0)*x(0)*x;
 }
-void QuasiNewton::update(double deltaX, double deltaGrad) {
+void QuasiNewton::update(VectorXd deltaX, VectorXd deltaGrad) {
     // BFGS approximation to Hessian
-    matrix = matrix + deltaGrad*deltaGrad/(deltaGrad*deltaX)
-    - matrix*deltaX*matrix*deltaX/(deltaX*matrix*deltaX);
+//    matrix = matrix + deltaGrad*deltaGrad/(deltaGrad*deltaX)
+//    - matrix*deltaX*matrix*deltaX/(deltaX*matrix*deltaX);
+    VectorXd matrix_deltaX(matrix*deltaX);
+    
+    matrix = matrix + deltaGrad*deltaGrad.transpose()/(deltaGrad.dot(deltaX))
+    - (matrix_deltaX)*matrix_deltaX.transpose()/(deltaX.dot(matrix_deltaX));
+
 }
-double QuasiNewton::searchDirection(double g) {
-    return -g/matrix;
+VectorXd QuasiNewton::searchDirection(VectorXd g) {
+    return matrix.triangularView<Upper>().solve(-g);
 }
-double Algorithm::lineSearch(const double& x,const double& dir,ObjectiveFunc obj) {
+double Algorithm::lineSearch(const VectorXd& x,const VectorXd& dir,ObjectiveFunc obj) {
     // Back-tracking line search
     double fval_current(obj.getFval());
     double alpha(2.0);
@@ -45,8 +50,8 @@ double Algorithm::lineSearch(const double& x,const double& dir,ObjectiveFunc obj
     // Update data member deltaX
     return alpha;
 }
-bool Algorithm::hasConverged(const double& deltaX,const double& deltaF,const ObjectiveGrad& obj) const {
-    return fabs(obj.getGrad()) < tolerance || fabs(deltaX) < tolerance
+bool Algorithm::hasConverged(const VectorXd& deltaX,const double& deltaF,const ObjectiveGrad& obj) const {
+    return obj.getGrad().norm() < tolerance || deltaX.norm() < tolerance
              || fabs(deltaF) < tolerance;
 }
 

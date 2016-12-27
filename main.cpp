@@ -8,24 +8,31 @@
 #include <iostream>
 #include "qnClasses.h"
 using namespace std;
+#include <Eigen/Dense>
+using namespace Eigen;
 
 int main(int argc, const char * argv[]) {
 
     // Input list:
-    Variable var(10.0); // initial guess
-    Algorithm alg(100,1e-9); // max iter and stopping tolerance
+    int N(1);   // number of variables
+    VectorXd x0(N);
+    x0 <<  10.0; // initial guess
+    int MaxIter(100);  // max number of iterations
+    double tol(1e-9);  // stopping tolerance
     // End of input list
+
+    Algorithm alg(MaxIter,tol);
+    Variable var(x0);
+    ObjectiveGrad obj(N);
+    QuasiNewton qn(N);
     
-    ObjectiveGrad obj;
-    QuasiNewton qn;
-    
-    double dir(0.0);        // search direction
+    VectorXd dir(N);        // search direction
     double alpha(0.0);      // line search steplength
-    double deltaX(0.0);     // step from one iterate to the next
+    VectorXd deltaX(N);     // step from one iterate to the next
     double deltaF(0.0);     // objective value change
-    double deltaGrad(0.0);  // gradient change
+    VectorXd deltaGrad(N);  // gradient change
     double fOld(0.0);       // previous objective value
-    double gradOld(0.0);    // previous gradient value
+    VectorXd gradOld(N);    // previous gradient value
     
     // Evaluate objective and gradient at initial point.
     obj.evaluate(var.getVarValue());
