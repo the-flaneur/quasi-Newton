@@ -14,9 +14,9 @@ using namespace Eigen;
 int main(int argc, const char * argv[]) {
 
     // Input list:
-    int N(1);   // number of variables
+    int N(2);   // number of variables
     VectorXd x0(N);
-    x0 <<  10.0; // initial guess
+    x0 << -1.2, 1.0; // initial guess
     int MaxIter(100);  // max number of iterations
     double tol(1e-9);  // stopping tolerance
     // End of input list
@@ -33,15 +33,17 @@ int main(int argc, const char * argv[]) {
     VectorXd deltaGrad(N);  // gradient change
     double fOld(0.0);       // previous objective value
     VectorXd gradOld(N);    // previous gradient value
+    unsigned int iter(0);   // MM
     
     // Evaluate objective and gradient at initial point.
     obj.evaluate(var.getVarValue());
 
     // Display initial point info.
-    cout << "x = " << var.getVarValue() << " f = " << obj.getFval()
+    cout << iter << ") x = " << var.getVarValue().transpose() << " f = " << obj.getFval()
     << " g = " << obj.getGrad() << endl;
 
     do {
+        iter = iter + 1; // MM
         // Compute search direction
         dir = qn.searchDirection(obj.getGrad());
         // Store current objective and grad values before
@@ -59,9 +61,9 @@ int main(int argc, const char * argv[]) {
         // Update QN matri using BFGS formula.
         qn.update(deltaX,deltaGrad);
         // Display info.
-        cout << "x = " << var.getVarValue() << " f = " << obj.getFval()
-        << " g = " << obj.getGrad() << endl;
-    } while (!alg.hasConverged(deltaX,deltaF,obj));
+        cout << iter << ") x = " << var.getVarValue().transpose() << " f = " << obj.getFval()
+        << " g = " << obj.getGrad().transpose() << endl;
+    } while (!alg.hasConverged(deltaX,deltaF,obj) && iter <= 100); // MM: the 100
 
     return 0;
 }

@@ -16,12 +16,12 @@ void Variable::update(const VectorXd& deltaX) {
 }
 void ObjectiveFunc::evaluate(VectorXd x) {
     // Compute function value
-    fval = x(0)*x(0)*x(0)*x(0);
+    fval = 100.0*pow(x(1) - x(0)*x(0),2) + pow(1.0-x(0),2);
 }
 void ObjectiveGrad::evaluate(VectorXd x) {
     // Compute function and gradient values
     ObjectiveFunc::evaluate(x);
-    grad = 4.0*x(0)*x(0)*x;
+    grad << -400.0*(x(1)-x(0)*x(0))*x(0)-2.0*(1.0-x(0)), 200.0*(x(1)-x(0)*x(0));
 }
 void QuasiNewton::update(VectorXd deltaX, VectorXd deltaGrad) {
     // BFGS approximation to Hessian
@@ -34,7 +34,7 @@ void QuasiNewton::update(VectorXd deltaX, VectorXd deltaGrad) {
 
 }
 VectorXd QuasiNewton::searchDirection(VectorXd g) {
-    return matrix.triangularView<Upper>().solve(-g);
+    return matrix.llt().solve(-g);
 }
 double Algorithm::lineSearch(const VectorXd& x,const VectorXd& dir,ObjectiveFunc obj) {
     // Back-tracking line search
@@ -44,9 +44,9 @@ double Algorithm::lineSearch(const VectorXd& x,const VectorXd& dir,ObjectiveFunc
     do {
         iter = iter + 1;
         alpha = alpha/2.0;
-        cout << "--- alpha = " << alpha << endl; // MM
         obj.evaluate(x + alpha*dir);
-    } while (obj.getFval() >= fval_current && iter <= 10);
+        cout << "--- alpha = " << alpha << " f = " << obj.getFval() << endl; // MM
+    } while (obj.getFval() >= fval_current && iter <= 100);
     // Update data member deltaX
     return alpha;
 }
