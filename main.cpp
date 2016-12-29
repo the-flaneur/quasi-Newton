@@ -15,7 +15,7 @@ int main(int argc, const char * argv[]) {
 
     // Input list:
     int N(2);   // number of variables
-    Vector2d x0(N);
+    VectorXd x0(N);
     x0 << -1.2, 1.0; // initial guess
     int MaxIter(100);  // max number of iterations
     double tol(1e-9);  // stopping tolerance
@@ -26,13 +26,13 @@ int main(int argc, const char * argv[]) {
     ObjectiveGrad obj(N);
     QuasiNewton qn(N);
     
-    Vector2d dir(N);        // search direction
+    VectorXd dir(N);        // search direction
     double alpha(0.0);      // line search steplength
-    Vector2d deltaX(N);     // step from one iterate to the next
+    VectorXd deltaX(N);     // step from one iterate to the next
     double deltaF(0.0);     // objective value change
-    Vector2d deltaGrad(N);  // gradient change
+    VectorXd deltaGrad(N);  // gradient change
     double fOld(0.0);       // previous objective value
-    Vector2d gradOld(N);    // previous gradient value
+    VectorXd gradOld(N);    // previous gradient value
     unsigned int iter(0);   // MM
     
     // Evaluate objective and gradient at initial point.

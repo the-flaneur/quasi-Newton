@@ -11,32 +11,32 @@
 #include <cmath>
 using namespace std;
 
-void Variable::update(const Vector2d& deltaX) {
+void Variable::update(const VectorXd& deltaX) {
     value = value + deltaX;
 }
-void ObjectiveFunc::evaluate(Vector2d x) {
+void ObjectiveFunc::evaluate(VectorXd x) {
     // Compute function value
     fval = 100.0*pow(x(1) - x(0)*x(0),2) + pow(1.0-x(0),2);
 }
-void ObjectiveGrad::evaluate(Vector2d x) {
+void ObjectiveGrad::evaluate(VectorXd x) {
     // Compute function and gradient values
     ObjectiveFunc::evaluate(x);
     grad << -400.0*(x(1)-x(0)*x(0))*x(0)-2.0*(1.0-x(0)), 200.0*(x(1)-x(0)*x(0));
 }
-void QuasiNewton::update(Vector2d deltaX, Vector2d deltaGrad) {
+void QuasiNewton::update(VectorXd deltaX, VectorXd deltaGrad) {
     // BFGS approximation to Hessian
 //    matrix = matrix + deltaGrad*deltaGrad/(deltaGrad*deltaX)
 //    - matrix*deltaX*matrix*deltaX/(deltaX*matrix*deltaX);
-    Vector2d matrix_deltaX(matrix*deltaX);
+    VectorXd matrix_deltaX(matrix*deltaX);
     
     matrix = matrix + deltaGrad*deltaGrad.transpose()/(deltaGrad.dot(deltaX))
     - (matrix_deltaX)*matrix_deltaX.transpose()/(deltaX.dot(matrix_deltaX));
 
 }
-Vector2d QuasiNewton::searchDirection(Vector2d g) {
+VectorXd QuasiNewton::searchDirection(VectorXd g) {
     return matrix.llt().solve(-g);
 }
-double Algorithm::lineSearch(const Vector2d& x,const Vector2d& dir,ObjectiveFunc obj) {
+double Algorithm::lineSearch(const VectorXd& x,const VectorXd& dir,ObjectiveFunc obj) {
     // Back-tracking line search
     double fval_current(obj.getFval());
     double alpha(2.0);
@@ -50,7 +50,7 @@ double Algorithm::lineSearch(const Vector2d& x,const Vector2d& dir,ObjectiveFunc
     // Update data member deltaX
     return alpha;
 }
-bool Algorithm::hasConverged(const Vector2d& deltaX,const double& deltaF,const ObjectiveGrad& obj) const {
+bool Algorithm::hasConverged(const VectorXd& deltaX,const double& deltaF,const ObjectiveGrad& obj) const {
     return obj.getGrad().norm() < tolerance || deltaX.norm() < tolerance
              || fabs(deltaF) < tolerance;
 }
