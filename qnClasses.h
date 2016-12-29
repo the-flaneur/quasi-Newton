@@ -20,7 +20,7 @@ public:
     ObjectiveFunc() : fval(0.0) {}
     /// Evaluates objective.
     /// @param [in] x the current iterate.
-    virtual void evaluate(VectorXd x);
+    virtual void evaluate(Vector2d x);
     /// @return current objective value.
     /// @return current gradient value.
     double getFval() const {return fval;}
@@ -29,49 +29,49 @@ public:
 class ObjectiveGrad : public ObjectiveFunc {
 private:
     /// Current gradient value.
-    VectorXd grad;
+    Vector2d grad;
 public:
     /// Default constructor
-    ObjectiveGrad(int N) : ObjectiveFunc(),grad(VectorXd::Zero(N)) {} 
+    ObjectiveGrad(int N) : ObjectiveFunc(),grad(Vector2d::Zero(N)) {} 
     /// Evaluates objective and gradient.
     /// @param [in] x the current iterate.
-    virtual void evaluate(VectorXd x) override;
+    virtual void evaluate(Vector2d x) override;
     /// @return current gradient value.
-    VectorXd getGrad() const {return grad;}
+    Vector2d getGrad() const {return grad;}
 };
 
 /// Class that represents the variable we are optimizing over.
 class Variable {
 private:
     /// Variable value of current iterate.
-    VectorXd value;
+    Vector2d value;
 public:
     /// Default and single-input constructor.
-    /// @param [in] x0 VectorXd specifies the starting value of the variable.
-    Variable(VectorXd x0) : value(x0) {};
+    /// @param [in] x0 Vector2d specifies the starting value of the variable.
+    Variable(Vector2d x0) : value(x0) {};
     /// Updates the variable value.
-    /// @param [in] deltaX VectorXd: search step.
-    void update(const VectorXd& deltaX);
+    /// @param [in] deltaX Vector2d: search step.
+    void update(const Vector2d& deltaX);
     /// @return value of variable at current iteration.
-    VectorXd getVarValue() const {return value;}
+    Vector2d getVarValue() const {return value;}
 };
 
 /// Class that holds quasi-Newton algorithm quantities
 class QuasiNewton {
 private:
     /// QN matrix.
-    MatrixXd matrix;
+    Matrix2d matrix;
 public:
     /// Default constructor.
-    QuasiNewton(int N) : matrix(MatrixXd::Identity(N,N)) {}
+    QuasiNewton(int N) : matrix(Matrix2d::Identity(N,N)) {}
     /// Updates QN matrix via de BFGS formula.
     /// @param [in] deltaX search step.
     /// @param [in] deltaGrad gradient change.
-    void update(VectorXd deltaX, VectorXd deltaGrad);
+    void update(Vector2d deltaX, Vector2d deltaGrad);
     /// Computes search direction.
     /// @param [in] g current gradient.
     /// @returns search direction \f$d_k = - H_kg_k\f$, where \f$H_k\f$ is the QN matrix.
-    VectorXd searchDirection(VectorXd g);
+    Vector2d searchDirection(Vector2d g);
 };
 
 /// Class that holds generic (not QN-specific) quantities
@@ -93,13 +93,13 @@ public:
     /// @param [in] dir search direction.
     /// @param [in] obj objective object.
     /// @returns steplength \f$\alpha\f$ such that the objective decerases over line \f$x_k + \alpha d_k\f$.
-    double lineSearch(const VectorXd& x,const VectorXd& dir,ObjectiveFunc obj);
+    double lineSearch(const Vector2d& x,const Vector2d& dir,ObjectiveFunc obj);
     /// Indicates whether convergence has occurred.
     /// @param [in] deltaX the change in variable
     /// @param [in] deltaF the change in objective value.
     /// @param [in] obj objective object.
     /// @return true if convergence has occurred, false otherwise.
-    bool hasConverged(const VectorXd& deltaX,const double& deltaF,const ObjectiveGrad& obj) const;
+    bool hasConverged(const Vector2d& deltaX,const double& deltaF,const ObjectiveGrad& obj) const;
 };
 
 #endif /* qnClasses_h */
