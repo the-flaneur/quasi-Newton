@@ -15,35 +15,32 @@ int main(int argc, const char * argv[]) {
 
     // Input list:
     int N(2);   // number of variables
-    VectorXd x0(N);
+    Vector_ x0(N);
     x0 << -1.2, 1.0; // initial guess
-    int MaxIter(100);  // max number of iterations
-    double tol(1e-9);  // stopping tolerance
+    Algorithm alg(100,1e-9); // max iter, stopping tolerance
     // End of input list
 
-    Algorithm alg(MaxIter,tol);
     Variable var(x0);
     ObjectiveGrad obj(N);
     QuasiNewton qn(N);
     
-    VectorXd dir(N);        // search direction
+    Vector_ dir(N);        // search direction
     double alpha(0.0);      // line search steplength
-    VectorXd deltaX(N);     // step from one iterate to the next
+    Vector_ deltaX(N);     // step from one iterate to the next
     double deltaF(0.0);     // objective value change
-    VectorXd deltaGrad(N);  // gradient change
+    Vector_ deltaGrad(N);  // gradient change
     double fOld(0.0);       // previous objective value
-    VectorXd gradOld(N);    // previous gradient value
-    unsigned int iter(0);   // MM
+    Vector_ gradOld(N);    // previous gradient value
     
     // Evaluate objective and gradient at initial point.
     obj.evaluate(var.getVarValue());
 
     // Display initial point info.
-    cout << iter << ") x = " << var.getVarValue().transpose() << " f = " << obj.getFval()
+    cout << alg.getIterCount() << ") x = " << var.getVarValue().transpose() << " f = " << obj.getFval()
     << " g = " << obj.getGrad() << endl;
 
     do {
-        iter = iter + 1; // MM
+        alg.iterCountPlusOne();
         // Compute search direction
         dir = qn.searchDirection(obj.getGrad());
         // Store current objective and grad values before
@@ -61,9 +58,9 @@ int main(int argc, const char * argv[]) {
         // Update QN matri using BFGS formula.
         qn.update(deltaX,deltaGrad);
         // Display info.
-        cout << iter << ") x = " << var.getVarValue().transpose() << " f = " << obj.getFval()
+        cout << alg.getIterCount() << ") x = " << var.getVarValue().transpose() << " f = " << obj.getFval()
         << " g = " << obj.getGrad().transpose() << endl;
-    } while (!alg.hasConverged(deltaX,deltaF,obj) && iter <= 100); // MM: the 100
+    } while (!alg.hasConverged(deltaX,deltaF,obj) && !alg.reachedMaxIter());
 
     return 0;
 }
