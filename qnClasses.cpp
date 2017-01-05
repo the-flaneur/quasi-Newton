@@ -46,11 +46,14 @@ double Algorithm::lineSearch(const Vector_& x,const Vector_& dir,ObjectiveFunc o
         iter = iter + 1;
         alpha = alpha/2.0;
         obj.evaluate(x + alpha*dir);
+
         // cout << "--- alpha = " << alpha << " f = " << obj.getFval() << endl; // MM
+
     } while (obj.getFval() >= fval_current && iter <= 100);
     // Update data member deltaX
     return alpha;
 }
+
 void Algorithm::displayIterInfo(const ObjectiveGrad& obj, double alpha) {
     if (iterCount % 25 == 0) {
         // Display header periodically

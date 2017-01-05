@@ -37,6 +37,7 @@ int main(int argc, const char * argv[]) {
     alg.setGradNorm(obj.getGrad());
 
     // Display initial point info.
+
     alg.displayIterInfo(obj);
 
     do {
