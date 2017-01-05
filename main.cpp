@@ -14,34 +14,33 @@ using namespace Eigen;
 int main(int argc, const char * argv[]) {
 
     // Input list:
-    int N(1);   // number of variables
-    VectorXd x0(N);
-    x0 <<  10.0; // initial guess
-    int MaxIter(100);  // max number of iterations
-    double tol(1e-9);  // stopping tolerance
+    int N(2);   // number of variables
+    Vector_ x0(N);
+    x0 << -1.2, 1.0; // initial guess
+    Algorithm alg(100,1e-9); // max iter, stopping tolerance
     // End of input list
 
-    Algorithm alg(MaxIter,tol);
     Variable var(x0);
     ObjectiveGrad obj(N);
     QuasiNewton qn(N);
     
-    VectorXd dir(N);        // search direction
+    Vector_ dir(N);        // search direction
     double alpha(0.0);      // line search steplength
-    VectorXd deltaX(N);     // step from one iterate to the next
-    double deltaF(0.0);     // objective value change
-    VectorXd deltaGrad(N);  // gradient change
+    Vector_ deltaX(N);     // step from one iterate to the next
+    Vector_ deltaGrad(N);  // gradient change
     double fOld(0.0);       // previous objective value
-    VectorXd gradOld(N);    // previous gradient value
+    Vector_ gradOld(N);    // previous gradient value
     
     // Evaluate objective and gradient at initial point.
     obj.evaluate(var.getVarValue());
+    // Calculate the 2-norm of the initial gradient
+    alg.setGradNorm(obj.getGrad());
 
     // Display initial point info.
-    cout << "x = " << var.getVarValue() << " f = " << obj.getFval()
-    << " g = " << obj.getGrad() << endl;
+    alg.displayIterInfo(obj);
 
     do {
+        alg.iterCountPlusOne();
         // Compute search direction
         dir = qn.searchDirection(obj.getGrad());
         // Store current objective and grad values before
@@ -53,15 +52,19 @@ int main(int argc, const char * argv[]) {
         var.update(deltaX);
         // Evaluate gradient at new iterate (also re-computes fval)
         obj.evaluate(var.getVarValue());
+        // Calculate the 2-norm of the gradient
+        alg.setGradNorm(obj.getGrad());
         // Compute deltas
-        deltaF = obj.getFval() - fOld;
+        alg.setDeltaFval(obj.getFval() - fOld);
         deltaGrad = obj.getGrad() - gradOld;
         // Update QN matri using BFGS formula.
         qn.update(deltaX,deltaGrad);
+        // Calculate the norm of deltaX
+        alg.setDeltaXNorm(deltaX);
         // Display info.
-        cout << "x = " << var.getVarValue() << " f = " << obj.getFval()
-        << " g = " << obj.getGrad() << endl;
-    } while (!alg.hasConverged(deltaX,deltaF,obj));
+        alg.displayIterInfo(obj,alpha);
+
+    } while (!alg.hasConverged(obj) && !alg.reachedMaxIter());
 
     return 0;
 }

@@ -10,6 +10,12 @@
 #include <Eigen/Dense>
 using namespace Eigen;
 
+// Convenience typedef's for debugging: replace X by the number
+// of variables (e.g. VectorXd by Vector2d) in order to be able
+// to inspect vector and matrix values in a debugging session.
+typedef VectorXd Vector_;
+typedef MatrixXd Matrix_;
+
 /// Problem definition
 class ObjectiveFunc {
 protected:
@@ -20,7 +26,7 @@ public:
     ObjectiveFunc() : fval(0.0) {}
     /// Evaluates objective.
     /// @param [in] x the current iterate.
-    virtual void evaluate(VectorXd x);
+    virtual void evaluate(Vector_ x);
     /// @return current objective value.
     /// @return current gradient value.
     double getFval() const {return fval;}
@@ -29,77 +35,99 @@ public:
 class ObjectiveGrad : public ObjectiveFunc {
 private:
     /// Current gradient value.
-    VectorXd grad;
+    Vector_ grad;
 public:
     /// Default constructor
-    ObjectiveGrad(int N) : ObjectiveFunc(),grad(VectorXd::Zero(N)) {} 
+    ObjectiveGrad(int N) : ObjectiveFunc(),grad(Vector_::Zero(N)) {}
     /// Evaluates objective and gradient.
     /// @param [in] x the current iterate.
-    virtual void evaluate(VectorXd x) override;
+    virtual void evaluate(Vector_ x) override;
     /// @return current gradient value.
-    VectorXd getGrad() const {return grad;}
+    Vector_ getGrad() const {return grad;}
 };
 
 /// Class that represents the variable we are optimizing over.
 class Variable {
 private:
     /// Variable value of current iterate.
-    VectorXd value;
+    Vector_ value;
 public:
     /// Default and single-input constructor.
-    /// @param [in] x0 VectorXd specifies the starting value of the variable.
-    Variable(VectorXd x0) : value(x0) {};
+    /// @param [in] x0 Vector_ specifies the starting value of the variable.
+    Variable(Vector_ x0) : value(x0) {};
     /// Updates the variable value.
-    /// @param [in] deltaX VectorXd: search step.
-    void update(const VectorXd& deltaX);
+    /// @param [in] deltaX Vector_: search step.
+    void update(const Vector_& deltaX);
     /// @return value of variable at current iteration.
-    VectorXd getVarValue() const {return value;}
+    Vector_ getVarValue() const {return value;}
 };
 
 /// Class that holds quasi-Newton algorithm quantities
 class QuasiNewton {
 private:
     /// QN matrix.
-    MatrixXd matrix;
+    Matrix_ matrix;
 public:
     /// Default constructor.
-    QuasiNewton(int N) : matrix(MatrixXd::Identity(N,N)) {}
+    QuasiNewton(int N) : matrix(Matrix_::Identity(N,N)) {}
     /// Updates QN matrix via de BFGS formula.
     /// @param [in] deltaX search step.
     /// @param [in] deltaGrad gradient change.
-    void update(VectorXd deltaX, VectorXd deltaGrad);
+    void update(Vector_ deltaX, Vector_ deltaGrad);
     /// Computes search direction.
     /// @param [in] g current gradient.
     /// @returns search direction \f$d_k = - H_kg_k\f$, where \f$H_k\f$ is the QN matrix.
-    VectorXd searchDirection(VectorXd g);
+    Vector_ searchDirection(Vector_ g);
 };
 
 /// Class that holds generic (not QN-specific) quantities
 class Algorithm {
 private:
-    // MM unsigned int iterCount;
+    /// Iteration counter.
+    unsigned int iterCount;
     /// Maximum number of iterations allowed.
-    unsigned int MaxIter; // use const
+    unsigned int maxIter;
     /// Stopping tolerance.
     double tolerance;
+    /// Norm-2 of gradient
+    double gradNorm;
+    /// Change in objective value.
+    double deltaFval;
+    /// Norm of change in variables (norm of step)
+    double deltaXNorm;
 public:
     /// Constuctor.
     /// @param [in] mi maximum number of iterations allowed.
     /// @param [in] tol stopping tolerance.
-    Algorithm(unsigned int mi,double tol) : MaxIter(mi),tolerance(tol) {};
+    Algorithm(unsigned int mi,double tol) : iterCount(0),maxIter(mi),tolerance(tol),gradNorm(0.0),
+    deltaFval(0.0),deltaXNorm(0.0) {};
     /// Backtracking line search. Halves step until simple decrease occurs
     /// or line-search's MaxIter reached.
     /// @param [in] x current iterate.
     /// @param [in] dir search direction.
     /// @param [in] obj objective object.
     /// @returns steplength \f$\alpha\f$ such that the objective decerases over line \f$x_k + \alpha d_k\f$.
-    double lineSearch(const VectorXd& x,const VectorXd& dir,ObjectiveFunc obj);
+    double lineSearch(const Vector_& x,const Vector_& dir,ObjectiveFunc obj);
+    /// Iterative display.
+    /// @param [in] obj is an ObjectiveGrad object.
+    /// @param [in] alpha line search steplength. Default value = 0.0 provided because alpha is not available
+    /// in zero-th iteration.
+    void displayIterInfo(const ObjectiveGrad& obj, double alpha = 0.0);
     /// Indicates whether convergence has occurred.
-    /// @param [in] deltaX the change in variable
-    /// @param [in] deltaF the change in objective value.
     /// @param [in] obj objective object.
     /// @return true if convergence has occurred, false otherwise.
-    bool hasConverged(const VectorXd& deltaX,const double& deltaF,const ObjectiveGrad& obj) const;
+    bool hasConverged(const ObjectiveGrad& obj) const;
+    /// Incraese iteration counter by one.
+    void iterCountPlusOne() {iterCount = iterCount + 1;}
+    /// Check whether maximum number of iterations allowed has been reached.
+    /// @return true if maximum has been reached, false otherwise.
+    bool reachedMaxIter() {return iterCount >= maxIter;}
+    /// Set norm of gradient.
+    void setGradNorm(Vector_ grad) {gradNorm = grad.norm();}
+    /// Set change in objective value.
+    void setDeltaFval(double df) {deltaFval = df;}
+    /// Set norm of change in variables (norm of step).
+    void setDeltaXNorm(const Vector_& deltaX) {deltaXNorm = deltaX.norm();}
 };
 
 #endif /* qnClasses_h */
