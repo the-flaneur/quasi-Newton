@@ -27,17 +27,18 @@ int main(int argc, const char * argv[]) {
     Vector_ dir(N);        // search direction
     double alpha(0.0);      // line search steplength
     Vector_ deltaX(N);     // step from one iterate to the next
-    double deltaF(0.0);     // objective value change
     Vector_ deltaGrad(N);  // gradient change
     double fOld(0.0);       // previous objective value
     Vector_ gradOld(N);    // previous gradient value
     
     // Evaluate objective and gradient at initial point.
     obj.evaluate(var.getVarValue());
+    // Calculate the 2-norm of the initial gradient
+    alg.setGradNorm(obj.getGrad());
 
     // Display initial point info.
-    cout << alg.getIterCount() << ") x = " << var.getVarValue().transpose() << " f = " << obj.getFval()
-    << " g = " << obj.getGrad() << endl;
+
+    alg.displayIterInfo(obj);
 
     do {
         alg.iterCountPlusOne();
@@ -52,15 +53,19 @@ int main(int argc, const char * argv[]) {
         var.update(deltaX);
         // Evaluate gradient at new iterate (also re-computes fval)
         obj.evaluate(var.getVarValue());
+        // Calculate the 2-norm of the gradient
+        alg.setGradNorm(obj.getGrad());
         // Compute deltas
-        deltaF = obj.getFval() - fOld;
+        alg.setDeltaFval(obj.getFval() - fOld);
         deltaGrad = obj.getGrad() - gradOld;
         // Update QN matri using BFGS formula.
         qn.update(deltaX,deltaGrad);
+        // Calculate the norm of deltaX
+        alg.setDeltaXNorm(deltaX);
         // Display info.
-        cout << alg.getIterCount() << ") x = " << var.getVarValue().transpose() << " f = " << obj.getFval()
-        << " g = " << obj.getGrad().transpose() << endl;
-    } while (!alg.hasConverged(deltaX,deltaF,obj) && !alg.reachedMaxIter());
+        alg.displayIterInfo(obj,alpha);
+
+    } while (!alg.hasConverged(obj) && !alg.reachedMaxIter());
 
     return 0;
 }

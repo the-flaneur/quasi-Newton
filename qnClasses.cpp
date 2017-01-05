@@ -6,6 +6,7 @@
 //
 
 #include <iostream> // MM
+#include <iomanip>
 #include <stdio.h>
 #include "qnClasses.h"
 #include <cmath>
@@ -45,13 +46,32 @@ double Algorithm::lineSearch(const Vector_& x,const Vector_& dir,ObjectiveFunc o
         iter = iter + 1;
         alpha = alpha/2.0;
         obj.evaluate(x + alpha*dir);
-        cout << "--- alpha = " << alpha << " f = " << obj.getFval() << endl; // MM
+
+        // cout << "--- alpha = " << alpha << " f = " << obj.getFval() << endl; // MM
+
     } while (obj.getFval() >= fval_current && iter <= 100);
     // Update data member deltaX
     return alpha;
 }
-bool Algorithm::hasConverged(const Vector_& deltaX,const double& deltaF,const ObjectiveGrad& obj) const {
-    return obj.getGrad().norm() < tolerance || deltaX.norm() < tolerance
-             || fabs(deltaF) < tolerance;
+
+void Algorithm::displayIterInfo(const ObjectiveGrad& obj, double alpha) {
+    if (iterCount % 25 == 0) {
+        // Display header periodically
+        cout << endl; // display a blank line
+        cout << setw(5) << "iter" << setw(15) << "fval" << setw(15) << "grad norm"
+        << setw(15) << "step-length" << setw(15) << "step norm" << endl;
+    }
+    cout << setw(5) << iterCount << setw(15) << obj.getFval() << setw(15);
+    cout << gradNorm;
+    // If zero-th iteration, terminate line of output.
+    if (iterCount == 0) cout << endl;
+    // If iteration count > 0, display additional quantities that are available.
+    if (iterCount > 0) {
+        cout << setw(15) << alpha << setw(15) << deltaXNorm << endl;
+    };
+}
+bool Algorithm::hasConverged(const ObjectiveGrad& obj) const {
+    return gradNorm < tolerance || deltaXNorm < tolerance
+             || fabs(deltaFval) < tolerance;
 }
 

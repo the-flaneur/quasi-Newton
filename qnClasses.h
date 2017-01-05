@@ -38,7 +38,7 @@ private:
     Vector_ grad;
 public:
     /// Default constructor
-    ObjectiveGrad(int N) : ObjectiveFunc(),grad(Vector_::Zero(N)) {} 
+    ObjectiveGrad(int N) : ObjectiveFunc(),grad(Vector_::Zero(N)) {}
     /// Evaluates objective and gradient.
     /// @param [in] x the current iterate.
     virtual void evaluate(Vector_ x) override;
@@ -89,11 +89,18 @@ private:
     unsigned int maxIter;
     /// Stopping tolerance.
     double tolerance;
+    /// Norm-2 of gradient
+    double gradNorm;
+    /// Change in objective value.
+    double deltaFval;
+    /// Norm of change in variables (norm of step)
+    double deltaXNorm;
 public:
     /// Constuctor.
     /// @param [in] mi maximum number of iterations allowed.
     /// @param [in] tol stopping tolerance.
-    Algorithm(unsigned int mi,double tol) : iterCount(0),maxIter(mi),tolerance(tol) {};
+    Algorithm(unsigned int mi,double tol) : iterCount(0),maxIter(mi),tolerance(tol),gradNorm(0.0),
+    deltaFval(0.0),deltaXNorm(0.0) {};
     /// Backtracking line search. Halves step until simple decrease occurs
     /// or line-search's MaxIter reached.
     /// @param [in] x current iterate.
@@ -101,20 +108,26 @@ public:
     /// @param [in] obj objective object.
     /// @returns steplength \f$\alpha\f$ such that the objective decerases over line \f$x_k + \alpha d_k\f$.
     double lineSearch(const Vector_& x,const Vector_& dir,ObjectiveFunc obj);
+    /// Iterative display.
+    /// @param [in] obj is an ObjectiveGrad object.
+    /// @param [in] alpha line search steplength. Default value = 0.0 provided because alpha is not available
+    /// in zero-th iteration.
+    void displayIterInfo(const ObjectiveGrad& obj, double alpha = 0.0);
     /// Indicates whether convergence has occurred.
-    /// @param [in] deltaX the change in variable
-    /// @param [in] deltaF the change in objective value.
     /// @param [in] obj objective object.
     /// @return true if convergence has occurred, false otherwise.
-    bool hasConverged(const Vector_& deltaX,const double& deltaF,const ObjectiveGrad& obj) const;
-    /// Get method for iteration count.
-    /// @return iteration count
-    unsigned int getIterCount() const {return iterCount;}
+    bool hasConverged(const ObjectiveGrad& obj) const;
     /// Incraese iteration counter by one.
     void iterCountPlusOne() {iterCount = iterCount + 1;}
     /// Check whether maximum number of iterations allowed has been reached.
     /// @return true if maximum has been reached, false otherwise.
     bool reachedMaxIter() {return iterCount >= maxIter;}
+    /// Set norm of gradient.
+    void setGradNorm(Vector_ grad) {gradNorm = grad.norm();}
+    /// Set change in objective value.
+    void setDeltaFval(double df) {deltaFval = df;}
+    /// Set norm of change in variables (norm of step).
+    void setDeltaXNorm(const Vector_& deltaX) {deltaXNorm = deltaX.norm();}
 };
 
 #endif /* qnClasses_h */
