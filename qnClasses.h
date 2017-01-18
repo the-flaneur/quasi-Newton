@@ -62,24 +62,6 @@ public:
     Vector_ getVarValue() const {return value;}
 };
 
-/// Class that holds quasi-Newton algorithm quantities
-class QuasiNewton {
-private:
-    /// QN matrix.
-    Matrix_ matrix;
-public:
-    /// Default constructor.
-    QuasiNewton(int N) : matrix(Matrix_::Identity(N,N)) {}
-    /// Updates QN matrix via de BFGS formula.
-    /// @param [in] deltaX search step.
-    /// @param [in] deltaGrad gradient change.
-    void update(Vector_ deltaX, Vector_ deltaGrad);
-    /// Computes search direction.
-    /// @param [in] g current gradient.
-    /// @returns search direction \f$d_k = - H_kg_k\f$, where \f$H_k\f$ is the QN matrix.
-    Vector_ searchDirection(Vector_ g);
-};
-
 /// Class that holds generic (not QN-specific) quantities
 class Algorithm {
 private:
@@ -131,6 +113,30 @@ public:
     /// Set norm of change in variables (norm of step).
     void setDeltaXNorm(const Vector_& deltaX) {deltaXNorm = deltaX.norm();}
     void setOutputFileName(const std::string& fName) {outputFileName = fName;}
+};
+
+
+/// Class that holds quasi-Newton algorithm quantities
+class QuasiNewton {
+private:
+    /// QN matrix.
+    Matrix_ matrix;
+public:
+    /// Default constructor.
+    QuasiNewton(int N) : matrix(Matrix_::Identity(N,N)) {}
+    /// Updates QN matrix via de BFGS formula.
+    /// @param [in] deltaX search step.
+    /// @param [in] deltaGrad gradient change.
+    void update(Vector_ deltaX, Vector_ deltaGrad);
+    /// Computes search direction.
+    /// @param [in] g current gradient.
+    /// @returns search direction \f$d_k = - H_kg_k\f$, where \f$H_k\f$ is the QN matrix.
+    Vector_ searchDirection(Vector_ g);
+    /// Runs QN algorithm.
+    /// @param [in] N number of variables.
+    /// @param [in] var Variable object initialized to x0 (initial guess).
+    /// @param [in] alg Algorithm object, where options are set.
+    void solve(int N,Variable var,Algorithm alg);
 };
 
 #endif /* qnClasses_h */
