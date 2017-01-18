@@ -6,10 +6,12 @@
 //
 
 #include <iostream> // MM
+#include <fstream>
 #include <iomanip>
 #include <stdio.h>
 #include "qnClasses.h"
 #include <cmath>
+#include <cassert>
 using namespace std;
 
 void Variable::update(const Vector_& deltaX) {
@@ -55,21 +57,25 @@ double Algorithm::lineSearch(const Vector_& x,const Vector_& dir,ObjectiveFunc o
 }
 
 void Algorithm::displayIterInfo(const ObjectiveGrad& obj, double alpha) {
+    std::ofstream writeOutput(outputFileName,std::ios::app); // open file for appending
+    assert(writeOutput.is_open()); // verify file is open before attempting to write to it
     if (iterCount % 25 == 0) {
         // Display header periodically
-        cout << endl; // display a blank line
-        cout << setw(5) << "iter" << setw(15) << "fval" << setw(15) << "grad norm"
+        writeOutput << endl; // display a blank line
+        writeOutput << setw(5) << "iter" << setw(15) << "fval" << setw(15) << "grad norm"
         << setw(15) << "step-length" << setw(15) << "step norm" << endl;
     }
-    cout << setw(5) << iterCount << setw(15) << obj.getFval() << setw(15);
-    cout << gradNorm;
+    writeOutput << setw(5) << iterCount << setw(15) << obj.getFval() << setw(15);
+    writeOutput << gradNorm;
     // If zero-th iteration, terminate line of output.
-    if (iterCount == 0) cout << endl;
+    if (iterCount == 0) writeOutput << endl;
     // If iteration count > 0, display additional quantities that are available.
     if (iterCount > 0) {
-        cout << setw(15) << alpha << setw(15) << deltaXNorm << endl;
+        writeOutput << setw(15) << alpha << setw(15) << deltaXNorm << endl;
     };
+    writeOutput.close(); // close file before exiting
 }
+
 bool Algorithm::hasConverged(const ObjectiveGrad& obj) const {
     return gradNorm < tolerance || deltaXNorm < tolerance
              || fabs(deltaFval) < tolerance;
