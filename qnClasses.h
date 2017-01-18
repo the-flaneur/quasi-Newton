@@ -95,12 +95,14 @@ private:
     double deltaFval;
     /// Norm of change in variables (norm of step)
     double deltaXNorm;
+    /// Name of output file
+    std::string outputFileName;
 public:
     /// Constuctor.
     /// @param [in] mi maximum number of iterations allowed.
     /// @param [in] tol stopping tolerance.
-    Algorithm(unsigned int mi,double tol) : iterCount(0),maxIter(mi),tolerance(tol),gradNorm(0.0),
-    deltaFval(0.0),deltaXNorm(0.0) {};
+    Algorithm(unsigned int mi,double tol,std::string fName="iter.out") : iterCount(0),maxIter(mi),
+    tolerance(tol),gradNorm(0.0),outputFileName(fName),deltaFval(0.0),deltaXNorm(0.0) {};
     /// Backtracking line search. Halves step until simple decrease occurs
     /// or line-search's MaxIter reached.
     /// @param [in] x current iterate.
@@ -128,6 +130,7 @@ public:
     void setDeltaFval(double df) {deltaFval = df;}
     /// Set norm of change in variables (norm of step).
     void setDeltaXNorm(const Vector_& deltaX) {deltaXNorm = deltaX.norm();}
+    void setOutputFileName(const std::string& fName) {outputFileName = fName;}
 };
 
 #endif /* qnClasses_h */
